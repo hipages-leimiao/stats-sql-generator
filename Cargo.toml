@@ -10,6 +10,8 @@ anyhow = "1.0.69"
 calamine = "0.19.1"
 clap = { version = "4.1.4", features = ["derive"] }
 dialoguer = "0.10.3"
+indexmap = "1.9.2"
 rayon = "1.6.1"
 serde = { version = "1.0.152", features = ["derive"] }
+trycmd = "0.14.11"
 

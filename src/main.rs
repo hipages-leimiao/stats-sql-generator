@@ -1,8 +1,9 @@
-use std::{cell::RefCell, collections::HashMap, fs, path::PathBuf};
+use std::{cell::RefCell, fs, path::PathBuf};
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
 use dialoguer::{theme::ColorfulTheme, Input};
+use indexmap::IndexMap;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use stats_sql_generator::{
@@ -48,7 +49,7 @@ fn parse() -> Result<RunArgs> {
 }
 fn run(args: RunArgs) {
     let data = ProfileStats::load_data(args.file).unwrap();
-    let account_stats: RefCell<HashMap<&u32, ValueType>> = RefCell::new(HashMap::new());
+    let account_stats: RefCell<IndexMap<&u32, ValueType>> = RefCell::new(IndexMap::new());
     let mut map = account_stats.borrow_mut();
     data.iter().for_each(|v| {
         let parsed = map
