@@ -19,6 +19,9 @@ pub struct RunArgs {
     pub file: PathBuf,
 
     #[clap(short, long, value_parser)]
+    pub parsed: bool,
+    
+    #[clap(short, long, value_parser)]
     pub key: String,
 
     #[clap(short, long, value_parser)]

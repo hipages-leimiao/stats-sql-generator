@@ -1,4 +1,8 @@
-use std::{cell::RefCell, fs, path::PathBuf};
+use std::{
+    cell::RefCell,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
@@ -8,7 +12,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use stats_sql_generator::{
     cli::{Action, Cli, RunArgs},
-    xlsx::XlsxReader,
+    file::load_data,
 };
 
 fn main() -> Result<()> {
@@ -33,36 +37,58 @@ fn parse() -> Result<RunArgs> {
     if !path.exists() {
         return Err(anyhow!("Path invalid"));
     }
+    let parsed = Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("Is data already parsed?")
+        .default(true)
+        .interact_text()?;
     let key: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt(
             "Time range for this batch of stats migration (eg: 1 September 2022 - 31 January 2023)",
         )
+        .default("1 September 2022 - 31 January 2023".into())
         .interact_text()?;
     let migration_file_name: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Filename of this migration (eg: SeedProfileStatsBatch*)")
+        .default("SeedProfileStatsBatch".into())
         .interact_text()?;
     Ok(RunArgs {
         file: path,
+        parsed,
         key,
         migration_file_name,
     })
 }
 fn run(args: RunArgs) {
-    let data = ProfileStats::load_data(args.file).unwrap();
+    let vals: Vec<ValueType> = match args.parsed {
+        true => load_data(args.file.as_path()).unwrap(),
+        false => load_data_and_parse(args.file.as_path()),
+    };
+    gen_migration_file(args, vals);
+}
+
+fn load_data_and_parse(path: &Path) -> Vec<ValueType> {
+    let data: Vec<ValueRawType> = load_data(path).unwrap();
+
     let account_stats: RefCell<IndexMap<&u32, ValueType>> = RefCell::new(IndexMap::new());
     let mut map = account_stats.borrow_mut();
     data.iter().for_each(|v| {
         let parsed = map
             .entry(&v.account_id)
             .or_insert_with(|| ValueType::new(v.account_id));
-        match v.activity.as_str() {
-            "profile view" => parsed.profile_views = v.sessions,
-            "phone clicks" => parsed.contact_number_impressions = v.sessions,
-            "view gallery" => parsed.gallery_impressions = v.sessions,
-            _ => println!("{:?}", v),
+        let counts = v.sessions.unwrap_or(0);
+        if counts > 0 {
+            let activity = v.activity.as_ref().unwrap().as_str();
+            match activity {
+                "profile view" => parsed.profile_view = counts,
+                "phone clicks" => parsed.phone_clicks = counts,
+                "view gallery" => parsed.view_gallery = counts,
+                _ => println!("Warn: unknown activity - {:?}", activity),
+            }
         }
     });
-    let vals = map.values().cloned().collect::<Vec<ValueType>>();
+    map.values().cloned().collect::<Vec<ValueType>>()
+}
+fn gen_migration_file(args: RunArgs, vals: Vec<ValueType>) {
     let sql = gen_sql(&vals, args.key);
     let tpl = include_str!("../fixtures/migration_tpl.txt")
         .replace("{sql}", &sql)
@@ -71,7 +97,6 @@ fn run(args: RunArgs) {
     println!("migration sql generates to file: {}", output_file);
     fs::write(output_file, tpl).expect("Unable to write migration file");
 }
-
 fn gen_sql(values: &Vec<ValueType>, stat_key: String) -> String {
     let chunk_size = 10000;
     let sql_prefix: &str = "insert ignore into directory_tradie_statistics (account_id,stats_key,profile_views,contact_number_impressions,gallery_impressions) values ";
@@ -86,11 +111,7 @@ fn gen_sql(values: &Vec<ValueType>, stat_key: String) -> String {
                     .map(|v| {
                         format!(
                             "({},'{}',{},{},{})",
-                            v.account_id,
-                            stat_key,
-                            v.profile_views,
-                            v.contact_number_impressions,
-                            v.gallery_impressions
+                            v.account_id, stat_key, v.profile_view, v.phone_clicks, v.view_gallery
                         )
                     })
                     .collect::<Vec<String>>()
@@ -107,17 +128,20 @@ pub struct ValueRawType {
     account_type: Option<String>,
     client_type: Option<String>,
     account_created_date_dim_key: Option<String>,
-    activity: String,
-    app: Option<usize>,
-    sessions: u32,
+    activity: Option<String>,
+    app: Option<String>,
+    sessions: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ValueType {
     account_id: u32,
-    profile_views: u32,
-    contact_number_impressions: u32,
-    gallery_impressions: u32,
+    account_type: Option<String>,
+    client_type: Option<String>,
+    account_created_date_dim_key: Option<String>,
+    profile_view: u32,
+    phone_clicks: u32,
+    view_gallery: u32,
 }
 impl ValueType {
     fn new(account_id: u32) -> Self {
@@ -126,8 +150,4 @@ impl ValueType {
             ..Default::default()
         }
     }
-}
-pub struct ProfileStats;
-impl XlsxReader for ProfileStats {
-    type Item = ValueRawType;
 }
