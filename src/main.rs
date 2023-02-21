@@ -32,6 +32,7 @@ fn main() -> Result<()> {
 fn parse() -> Result<RunArgs> {
     let file: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Path of stats xlsx")
+        .default("fixtures/test.csv".into())
         .interact_text()?;
     let path = PathBuf::from(file);
     if !path.exists() {
@@ -42,14 +43,12 @@ fn parse() -> Result<RunArgs> {
         .default(true)
         .interact_text()?;
     let key: String = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt(
-            "Time range for this batch of stats migration (eg: 1 September 2022 - 31 January 2023)",
-        )
+        .with_prompt("Time range for this batch of stats migration")
         .default("1 September 2022 - 31 January 2023".into())
         .interact_text()?;
     let migration_file_name: String = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Filename of this migration (eg: SeedProfileStatsBatch*)")
-        .default("SeedProfileStatsBatch".into())
+        .with_prompt("Filename of this migration")
+        .default("SeedProfileStatsBatch4".into())
         .interact_text()?;
     Ok(RunArgs {
         file: path,

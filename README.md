@@ -56,8 +56,9 @@ migration sql generates to file: migration_output.php
 ```shell
 $ stats-sql-generator parse
 ✔ Path of stats xlsx · fixtures/test.xlsx
-✔ Time range for this batch of stats migration (eg: 1 September 2022 - 31 January 2023) · 1 September 2022 - 31 January 2023
-✔ Filename of this migration (eg: SeedProfileStatsBatch*) · SeedProfileStatsBatch4
+✔ Is data already parsed? · true
+✔ Time range for this batch of stats migration · 1 September 2022 - 31 January 2023
+✔ Filename of this migration · SeedProfileStatsBatch4
 migration sql generates to file: migration_output.php
 
 ```
