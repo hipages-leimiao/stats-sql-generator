@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{cell::RefCell, fs, path::Path};
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
@@ -13,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use stats_sql_generator::{
     cli::{Action, Cli, RunArgs},
     file::load_data,
+    get_default_date_range, get_file_full_path,
 };
 
 fn main() -> Result<()> {
@@ -34,7 +31,7 @@ fn parse() -> Result<RunArgs> {
         .with_prompt("Path of stats xlsx")
         .default("fixtures/test.csv".into())
         .interact_text()?;
-    let path = PathBuf::from(file);
+    let path = get_file_full_path(&file)?;
     if !path.exists() {
         return Err(anyhow!("Path invalid"));
     }
@@ -44,11 +41,11 @@ fn parse() -> Result<RunArgs> {
         .interact_text()?;
     let key: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Time range for this batch of stats migration")
-        .default("1 September 2022 - 31 January 2023".into())
+        .default(get_default_date_range())
         .interact_text()?;
     let migration_file_name: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Filename of this migration")
-        .default("SeedProfileStatsBatch4".into())
+        .default("SeedProfileStatsBatch".into())
         .interact_text()?;
     Ok(RunArgs {
         file: path,
