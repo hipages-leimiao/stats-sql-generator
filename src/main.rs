@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fs, path::Path};
+use std::{cell::RefCell, fs, path::Path, process::Command};
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
@@ -59,7 +59,18 @@ fn run(args: RunArgs) {
         true => load_data(args.file.as_path()).unwrap(),
         false => load_data_and_parse(args.file.as_path()),
     };
+    let migrate_file_name = args.migration_file_name.clone();
     gen_migration_file(args, vals);
+    add_migration_to_phinx(migrate_file_name);
+}
+
+fn add_migration_to_phinx(migration_file_name: String) {
+    let output = Command::new("sh")
+        .args(&["migration.sh", &migration_file_name])
+        .output()
+        .expect("failed to add migration file to phinx");
+
+    println!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
 fn load_data_and_parse(path: &Path) -> Vec<ValueType> {
