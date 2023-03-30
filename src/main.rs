@@ -1,4 +1,10 @@
-use std::{cell::RefCell, fs, path::Path, process::Command};
+use std::{
+    cell::RefCell,
+    fs,
+    io::{self, Write},
+    path::Path,
+    process::Command,
+};
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
@@ -70,7 +76,8 @@ fn add_migration_to_phinx(migration_file_name: String) {
         .output()
         .expect("failed to add migration file to phinx");
 
-    println!("{}", String::from_utf8_lossy(&output.stdout));
+    io::stdout().write_all(&output.stdout).unwrap();
+    io::stderr().write_all(&output.stderr).unwrap();
 }
 
 fn load_data_and_parse(path: &Path) -> Vec<ValueType> {

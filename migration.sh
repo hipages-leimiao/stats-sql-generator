@@ -1,4 +1,6 @@
 #! /bin/bash
+set -e # Enable errexit
+
 dirname=~/Projects/hipages/phinx-migrations/
 pname=${1:SeedProfileStatsBatch}
 echo "use phinx name: "$pname
