@@ -1,10 +1,27 @@
 use anyhow::{Ok, Result};
+use dirs;
 use serde::de::DeserializeOwned;
-use std::{fmt::Debug, fs::File, path::Path};
+use std::{
+    fmt::Debug,
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use calamine::{open_workbook_auto, Error, RangeDeserializerBuilder, Reader};
 
-pub fn load_data<T>(path: &Path) -> Result<Vec<T>>
+pub fn get_file_full_path(path: &str) -> Result<PathBuf> {
+    let mut full_path = PathBuf::new();
+    if path.starts_with("~/") {
+        let home_dir = dirs::home_dir().unwrap();
+        full_path.push(home_dir);
+        full_path.push(path.trim_start_matches("~/"));
+    } else {
+        full_path.push(path);
+    }
+    Ok(full_path)
+}
+
+pub fn load_excel_data<T>(path: &Path) -> Result<Vec<T>>
 where
     T: Sized + DeserializeOwned + Debug,
 {

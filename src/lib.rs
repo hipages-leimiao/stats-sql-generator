@@ -1,44 +1,33 @@
 use anyhow::Result;
-use chrono::{Datelike, Local};
-use cli::StatType;
-use date::DateRangeType;
-use dirs;
-use std::path::PathBuf;
-pub mod cli;
+use clap::{command, Parser, Subcommand};
 mod date;
 pub mod file;
+pub mod process;
 
-pub fn get_file_full_path(path: &str) -> Result<PathBuf> {
-    let mut full_path = PathBuf::new();
-    if path.starts_with("~/") {
-        let home_dir = dirs::home_dir().unwrap();
-        full_path.push(home_dir);
-        full_path.push(path.trim_start_matches("~/"));
-    } else {
-        full_path.push(path);
-    }
-    Ok(full_path)
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Cli<T: Subcommand> {
+    #[clap(subcommand)]
+    pub action: T,
 }
 
-fn get_last_day_of_prev_month() -> String {
-    let last_day = Local::now()
-        .date_naive()
-        .with_day(1)
-        .unwrap()
-        .pred_opt()
-        .unwrap();
-    last_day.format("%e %B %Y").to_string()
+pub trait Processor {
+    type Item;
+    fn run(&self) -> Result<()>;
+
+    fn load_data(&self) -> Result<Vec<Self::Item>>
+    where
+        Self: Sized;
+    fn generate_sql(&self, data: &Vec<Self::Item>) -> Result<String>
+    where
+        Self: Sized;
+    fn write_data(&self, sql: &str) -> Result<()>;
 }
 
-pub fn get_default_date_range() -> String {
-    format!("1 September 2022 - {}", get_last_day_of_prev_month())
-}
-
-pub fn get_stat_key(s_type: &StatType) -> String {
-    match s_type {
-        StatType::Default => get_default_date_range(),
-        StatType::Weekly => DateRangeType::PrevWeek.to_string(),
-        StatType::Monthly => DateRangeType::PrevMonth.to_string(),
-        StatType::Quarterly => DateRangeType::PrevThreeMonth.to_string(),
-    }
+pub trait CliArgs
+where
+    Self: Sized,
+{
+    fn parse_args(&mut self) -> Result<Self>;
+    fn parse_args_interactively(&mut self) -> Result<Self>;
 }

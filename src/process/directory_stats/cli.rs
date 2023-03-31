@@ -1,3 +1,5 @@
+use crate::{date::DateRangeType, file::get_file_full_path};
+use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{
     ffi::{OsStr, OsString},
@@ -5,13 +7,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{get_default_date_range, get_file_full_path, get_stat_key};
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-pub struct Cli {
-    #[clap(subcommand)]
-    pub action: Action,
-}
+pub use super::args;
 
 #[derive(Subcommand, Debug)]
 pub enum Action {
@@ -25,6 +21,12 @@ pub enum StatType {
     Weekly,
     Monthly,
     Quarterly,
+}
+
+impl Default for StatType {
+    fn default() -> Self {
+        StatType::Default
+    }
 }
 
 impl StatType {
@@ -49,7 +51,7 @@ impl fmt::Display for StatType {
     }
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone, Default)]
 pub struct RunArgs {
     #[clap(short, long, value_parser(get_file_full_path))]
     pub file: PathBuf,
@@ -69,4 +71,27 @@ pub struct RunArgs {
 
 fn get_default_key() -> &'static OsStr {
     Box::leak(Box::new(OsString::from(get_default_date_range()))).as_os_str()
+}
+
+pub fn get_default_date_range() -> String {
+    let last_day = Local::now()
+        .date_naive()
+        .with_day(1)
+        .unwrap()
+        .pred_opt()
+        .unwrap();
+
+    format!(
+        "1 September 2022 - {}",
+        last_day.format("%-d %B %Y").to_string()
+    )
+}
+
+pub fn get_stat_key(s_type: &StatType) -> String {
+    match s_type {
+        StatType::Default => get_default_date_range(),
+        StatType::Weekly => DateRangeType::PrevWeek.to_string(),
+        StatType::Monthly => DateRangeType::PrevMonth.to_string(),
+        StatType::Quarterly => DateRangeType::PrevThreeMonth.to_string(),
+    }
 }

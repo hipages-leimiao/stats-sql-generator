@@ -17,3 +17,7 @@ rayon = "1.6.1"
 serde = { version = "1.0.152", features = ["derive"] }
 trycmd = "0.14.11"
 
+
+[[bin]]
+name = "directory_stats"
+path = "src/bin/directory_stats.rs"
