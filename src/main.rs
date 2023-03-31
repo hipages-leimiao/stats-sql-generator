@@ -1,15 +1,12 @@
 use std::{
-    cell::RefCell,
     fs,
     io::{self, Write},
-    path::Path,
     process::Command,
 };
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
 use dialoguer::{theme::ColorfulTheme, Input, Select};
-use indexmap::IndexMap;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use stats_sql_generator::{
@@ -44,13 +41,8 @@ fn parse() -> Result<RunArgs> {
     if !path.exists() {
         return Err(anyhow!("Path invalid"));
     }
-    let parsed = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Is data already parsed?")
-        .default(true)
-        .interact_text()?;
-
     let range_items = &vec![
-        StatType::All,
+        StatType::Default,
         StatType::Quarterly,
         StatType::Monthly,
         StatType::Weekly,
@@ -74,7 +66,6 @@ fn parse() -> Result<RunArgs> {
         .interact_text()?;
     Ok(RunArgs {
         file: path,
-        parsed,
         key,
         migration_file_name,
         raise_pr,
@@ -82,10 +73,7 @@ fn parse() -> Result<RunArgs> {
     })
 }
 fn run(args: RunArgs) {
-    let vals: Vec<ValueType> = match args.parsed {
-        true => load_data(args.file.as_path()).unwrap(),
-        false => load_data_and_parse(args.file.as_path()),
-    };
+    let vals: Vec<ValueType> = load_data(args.file.as_path()).unwrap();
     let migrate_file_name = args.migration_file_name.clone();
     let raise_pr = args.raise_pr;
     gen_migration_file(args, vals);
@@ -104,30 +92,8 @@ fn add_migration_to_phinx(migration_file_name: String) {
     io::stderr().write_all(&output.stderr).unwrap();
 }
 
-fn load_data_and_parse(path: &Path) -> Vec<ValueType> {
-    let data: Vec<ValueRawType> = load_data(path).unwrap();
-
-    let account_stats: RefCell<IndexMap<&u32, ValueType>> = RefCell::new(IndexMap::new());
-    let mut map = account_stats.borrow_mut();
-    data.iter().for_each(|v| {
-        let parsed = map
-            .entry(&v.account_id)
-            .or_insert_with(|| ValueType::new(v.account_id));
-        let counts = v.sessions.unwrap_or(0);
-        if counts > 0 {
-            let activity = v.activity.as_ref().unwrap().as_str();
-            match activity {
-                "profile view" => parsed.profile_view = counts,
-                "phone clicks" => parsed.phone_clicks = counts,
-                "view gallery" => parsed.view_gallery = counts,
-                _ => println!("Warn: unknown activity - {:?}", activity),
-            }
-        }
-    });
-    map.values().cloned().collect::<Vec<ValueType>>()
-}
 fn gen_migration_file(args: RunArgs, vals: Vec<ValueType>) {
-    let sql = gen_sql(&vals, args.key);
+    let sql = gen_sql(&vals, args.key, args.s_type.as_str());
     let tpl = include_str!("../fixtures/migration_tpl.txt")
         .replace("{sql}", &sql)
         .replace("{file_name}", &args.migration_file_name);
@@ -135,9 +101,9 @@ fn gen_migration_file(args: RunArgs, vals: Vec<ValueType>) {
     println!("migration sql generates to file: {}", output_file);
     fs::write(output_file, tpl).expect("Unable to write migration file");
 }
-fn gen_sql(values: &Vec<ValueType>, stat_key: String) -> String {
+fn gen_sql(values: &Vec<ValueType>, stat_key: String, stat_type: &str) -> String {
     let chunk_size = 10000;
-    let sql_prefix: &str = "insert ignore into directory_tradie_statistics (account_id,stats_key,profile_views,contact_number_impressions,gallery_impressions) values ";
+    let sql_prefix: &str = "replace into directory_tradie_statistics (account_id,stats_key,stats_type,profile_views,contact_number_impressions,gallery_impressions) values ";
     values
         .par_chunks(chunk_size)
         .map(|chunk| {
@@ -148,8 +114,13 @@ fn gen_sql(values: &Vec<ValueType>, stat_key: String) -> String {
                     .iter()
                     .map(|v| {
                         format!(
-                            "({},'{}',{},{},{})",
-                            v.account_id, stat_key, v.profile_view, v.phone_clicks, v.view_gallery
+                            "({},'{}','{}',{},{},{})",
+                            v.account_id,
+                            stat_key,
+                            stat_type,
+                            v.profile_view,
+                            v.phone_clicks,
+                            v.view_gallery
                         )
                     })
                     .collect::<Vec<String>>()
@@ -180,12 +151,4 @@ pub struct ValueType {
     profile_view: u32,
     phone_clicks: u32,
     view_gallery: u32,
-}
-impl ValueType {
-    fn new(account_id: u32) -> Self {
-        Self {
-            account_id,
-            ..Default::default()
-        }
-    }
 }

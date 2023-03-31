@@ -21,30 +21,28 @@ cargo run -- {run|parse}
 
 ```trycmd
 $ stats-sql-generator run --help
-Usage: stats-sql-generator run [OPTIONS] --file <FILE> --key <KEY> --migration-file-name <MIGRATION_FILE_NAME>
+Usage: stats-sql-generator run [OPTIONS] --file <FILE>
 
 Options:
-  -f, --file <FILE>                                
-  -p, --parsed                                     
-  -k, --key <KEY>                                  
-  -m, --migration-file-name <MIGRATION_FILE_NAME>  
-  -h, --help                                       Print help
+  -f, --file <FILE>
+          
+  -s, --s-type <S_TYPE>
+          [default: default] [possible values: default, weekly, monthly, quarterly]
+  -k, --key <KEY>
+          [default: "1 September 2022 - 28 February 2023"]
+  -m, --migration-file-name <MIGRATION_FILE_NAME>
+          [default: SeedProfileStatsBatch]
+  -r, --raise-pr
+          
+  -h, --help
+          Print help
 
 ```
 
 ### Example
 
-source data require parse
-
 ```trycmd
-$ stats-sql-generator run -f fixtures/test.xlsx -k "1 September 2022 - 31 January 2023" -m SeedProfileStatsBatch4
-migration sql generates to file: migration_output.php
-
-```
-
-source data already parsed
-```trycmd
-$ stats-sql-generator run -f fixtures/test.csv -p -k "1 September 2022 - 31 January 2023" -m SeedProfileStatsBatch4
+$ stats-sql-generator run -f fixtures/test.csv -s monthly -m SeedProfileStatsBatch4
 migration sql generates to file: migration_output.php
 
 ```
@@ -55,10 +53,10 @@ migration sql generates to file: migration_output.php
 
 ```shell
 $ stats-sql-generator parse
-✔ Path of stats xlsx · fixtures/test.xlsx
-✔ Is data already parsed? · true
-✔ Time range for this batch of stats migration · 1 September 2022 - 31 January 2023
-✔ Filename of this migration · SeedProfileStatsBatch4
+✔ Path of stats xlsx · fixtures/test.csv
+✔ Select a stats type · Monthly: 1 Feb - 28 Feb 2023
+✔ Filename of this migration · SeedProfileStatsBatch
+✔ Auto raise phinx migration PR? · false
 migration sql generates to file: migration_output.php
 
 ```

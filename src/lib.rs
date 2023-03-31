@@ -36,7 +36,7 @@ pub fn get_default_date_range() -> String {
 
 pub fn get_stat_key(s_type: &StatType) -> String {
     match s_type {
-        StatType::All => get_default_date_range(),
+        StatType::Default => get_default_date_range(),
         StatType::Weekly => DateRangeType::PrevWeek.to_string(),
         StatType::Monthly => DateRangeType::PrevMonth.to_string(),
         StatType::Quarterly => DateRangeType::PrevThreeMonth.to_string(),

@@ -922,7 +922,6 @@ dependencies = [
  "csv",
  "dialoguer",
  "dirs",
- "indexmap",
  "rayon",
  "serde",
  "trycmd",

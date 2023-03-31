@@ -21,18 +21,30 @@ pub enum Action {
 
 #[derive(ValueEnum, Clone, Copy, Debug)]
 pub enum StatType {
-    All,
+    Default,
     Weekly,
     Monthly,
     Quarterly,
 }
+
+impl StatType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            StatType::Default => "default",
+            StatType::Weekly => "weekly",
+            StatType::Monthly => "monthly",
+            StatType::Quarterly => "quarterly",
+        }
+    }
+}
+
 impl fmt::Display for StatType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            StatType::All => write!(f, "All: {}", get_stat_key(&Self::All)),
-            StatType::Quarterly => write!(f, "Quarterly: {}", get_stat_key(&Self::Quarterly)),
-            StatType::Monthly => write!(f, "Monthly: {}", get_stat_key(&Self::Monthly)),
-            StatType::Weekly => write!(f, "Weekly:  {}", get_stat_key(&Self::Weekly)),
+            StatType::Default => write!(f, "default: {}", get_stat_key(&Self::Default)),
+            StatType::Quarterly => write!(f, "quarterly: {}", get_stat_key(&Self::Quarterly)),
+            StatType::Monthly => write!(f, "monthly: {}", get_stat_key(&Self::Monthly)),
+            StatType::Weekly => write!(f, "weekly:  {}", get_stat_key(&Self::Weekly)),
         }
     }
 }
@@ -42,10 +54,7 @@ pub struct RunArgs {
     #[clap(short, long, value_parser(get_file_full_path))]
     pub file: PathBuf,
 
-    #[clap(short, long, value_parser, default_value = "true")]
-    pub parsed: bool,
-
-    #[clap(short, long, value_enum, default_value = "All")]
+    #[clap(short, long, value_enum, default_value = "default")]
     pub s_type: StatType,
 
     #[clap(short, long, value_parser, default_value=get_default_key())]
