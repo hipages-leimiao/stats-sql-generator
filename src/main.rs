@@ -8,21 +8,24 @@ use std::{
 
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
-use dialoguer::{theme::ColorfulTheme, Input};
+use dialoguer::{theme::ColorfulTheme, Input, Select};
 use indexmap::IndexMap;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use stats_sql_generator::{
-    cli::{Action, Cli, RunArgs},
+    cli::{Action, Cli, RunArgs, StatType},
     file::load_data,
-    get_default_date_range, get_file_full_path,
+    get_file_full_path, get_stat_key,
 };
 
 fn main() -> Result<()> {
     let cfg = Cli::parse();
 
     match cfg.action {
-        Action::Run(args) => {
+        Action::Run(mut args) => {
+            if !args.key.is_empty() {
+                args.key = get_stat_key(&args.s_type);
+            }
             run(args);
         }
         Action::Parse => {
@@ -45,19 +48,37 @@ fn parse() -> Result<RunArgs> {
         .with_prompt("Is data already parsed?")
         .default(true)
         .interact_text()?;
-    let key: String = Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Time range for this batch of stats migration")
-        .default(get_default_date_range())
-        .interact_text()?;
+
+    let range_items = &vec![
+        StatType::All,
+        StatType::Quarterly,
+        StatType::Monthly,
+        StatType::Weekly,
+    ];
+    let picked_range: usize = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select a stats type")
+        .items(range_items)
+        .default(0)
+        .interact()?
+        .into();
+    let s_type = range_items[picked_range];
+    let key = get_stat_key(&s_type);
+
     let migration_file_name: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Filename of this migration")
         .default("SeedProfileStatsBatch".into())
+        .interact_text()?;
+    let raise_pr = Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("Auto raise phinx migration PR?")
+        .default(false)
         .interact_text()?;
     Ok(RunArgs {
         file: path,
         parsed,
         key,
         migration_file_name,
+        raise_pr,
+        s_type,
     })
 }
 fn run(args: RunArgs) {
@@ -66,8 +87,11 @@ fn run(args: RunArgs) {
         false => load_data_and_parse(args.file.as_path()),
     };
     let migrate_file_name = args.migration_file_name.clone();
+    let raise_pr = args.raise_pr;
     gen_migration_file(args, vals);
-    add_migration_to_phinx(migrate_file_name);
+    if raise_pr {
+        add_migration_to_phinx(migrate_file_name);
+    }
 }
 
 fn add_migration_to_phinx(migration_file_name: String) {
