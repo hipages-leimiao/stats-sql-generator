@@ -11,17 +11,27 @@ pub struct Cli<T: Subcommand> {
     pub action: T,
 }
 
-pub trait Processor {
+pub trait Processor
+where
+    Self: Sized,
+{
     type Item;
-    fn run(&self) -> Result<()>;
 
-    fn load_data(&self) -> Result<Vec<Self::Item>>
-    where
-        Self: Sized;
-    fn generate_sql(&self, data: &Vec<Self::Item>) -> Result<String>
-    where
-        Self: Sized;
-    fn write_data(&self, sql: &str) -> Result<()>;
+    fn load_data(&self) -> Result<Vec<Self::Item>>;
+
+    fn generate_result_in_string(&self, data: &Vec<Self::Item>) -> Result<String>;
+
+    fn write_data(&self, result_str: &str) -> Result<()>;
+    fn run_post_script(&self) -> Result<()> {
+        Ok(())
+    }
+    fn run(&self) -> Result<()> {
+        let data = self.load_data()?;
+        let result = self.generate_result_in_string(&data)?;
+        self.write_data(&result)?;
+        self.run_post_script()?;
+        Ok(())
+    }
 }
 
 pub trait CliArgs

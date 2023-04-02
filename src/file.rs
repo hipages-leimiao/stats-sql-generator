@@ -1,9 +1,11 @@
 use anyhow::{Ok, Result};
+use csv::ReaderBuilder;
 use dirs;
 use serde::de::DeserializeOwned;
 use std::{
     fmt::Debug,
     fs::File,
+    io::BufReader,
     path::{Path, PathBuf},
 };
 
@@ -49,4 +51,14 @@ where
         }
         _ => Err(Error::Msg("Unsupported file extension").into()),
     }
+}
+
+pub fn load_csv_line_stream<T: DeserializeOwned>(
+    file_path: &str,
+) -> impl Iterator<Item = Result<T, csv::Error>> {
+    let file = File::open(file_path).unwrap();
+    let reader = BufReader::new(file);
+    let r = ReaderBuilder::new().has_headers(true).from_reader(reader);
+
+    r.into_deserialize()
 }
