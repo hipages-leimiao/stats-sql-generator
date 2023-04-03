@@ -6,7 +6,7 @@ use super::cli::{get_stat_key, RunArgs, StatType};
 
 impl CliArgs for RunArgs {
     fn parse_args(&mut self) -> Result<Self> {
-        if self.key.is_empty() {
+        if !self.key.is_empty() {
             self.key = get_stat_key(&self.s_type);
         }
         Ok(self.clone())

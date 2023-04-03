@@ -9,7 +9,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # run
 ## option 1: (build then run)
 cargo build --release
-target/release/directory_stats {run|parse}
+target/release/profile_stats {run|parse}
 
 ## option 2: (build and run directly)
 cargo run -- {run|parse}
@@ -20,12 +20,12 @@ cargo run -- {run|parse}
 ### help
 
 ```trycmd
-$ directory_stats run --help
-Usage: directory_stats run [OPTIONS] --file <FILE>
+$ profile_stats run --help
+Usage: profile_stats run [OPTIONS] --file <FILE>
 
 Options:
   -f, --file <FILE>
-          
+
   -s, --s-type <S_TYPE>
           [default: default] [possible values: default, weekly, monthly, quarterly]
   -k, --key <KEY>
@@ -33,7 +33,7 @@ Options:
   -m, --migration-file-name <MIGRATION_FILE_NAME>
           [default: SeedProfileStatsBatch]
   -r, --raise-pr
-          
+
   -h, --help
           Print help
 
@@ -42,7 +42,7 @@ Options:
 ### Example
 
 ```trycmd
-$ directory_stats run -f fixtures/test.csv -s monthly -m SeedProfileStatsBatch4
+$ profile_stats run -f fixtures/test.csv -s monthly -m SeedProfileStatsBatch4
 migration sql generates to file: migration_output.php
 
 ```
@@ -52,7 +52,7 @@ migration sql generates to file: migration_output.php
 ### Example
 
 ```shell
-$ directory_stats parse
+$ profile_stats parse
 ✔ Path of stats xlsx · fixtures/test.csv
 ✔ Select a stats type · Monthly: 1 Feb - 28 Feb 2023
 ✔ Filename of this migration · SeedProfileStatsBatch

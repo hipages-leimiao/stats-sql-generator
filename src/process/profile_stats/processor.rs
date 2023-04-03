@@ -76,7 +76,7 @@ impl Processor for RunArgs {
             return Ok(());
         }
         let output = Command::new("sh")
-            .args(&["src/bin/directory_stats_post.sh", &self.migration_file_name])
+            .args(&["src/bin/profile_stats_post.sh", &self.migration_file_name])
             .output()
             .expect("failed to add migration file to phinx");
 

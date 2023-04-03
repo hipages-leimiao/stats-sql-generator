@@ -1,1 +1,1 @@
-pub mod directory_stats;
+pub mod profile_stats;

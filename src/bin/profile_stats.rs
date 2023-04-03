@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use stats_sql_generator::{
-    process::directory_stats::cli::{Action, RunArgs},
+    process::profile_stats::cli::{Action, RunArgs},
     Cli, CliArgs, Processor,
 };
 fn main() -> Result<()> {

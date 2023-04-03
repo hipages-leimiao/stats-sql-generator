@@ -19,5 +19,5 @@ trycmd = "0.14.11"
 
 
 [[bin]]
-name = "directory_stats"
-path = "src/bin/directory_stats.rs"
+name = "profile_stats"
+path = "src/bin/profile_stats.rs"
