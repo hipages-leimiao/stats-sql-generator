@@ -1,5 +1,7 @@
 /target
 *.php
 ~$*.xlsx
+/*.csv
+/*.txt
 .DS_Store
 examples
