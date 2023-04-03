@@ -26,7 +26,21 @@ impl Processor for RunArgs {
     type Item = ValueType;
 
     fn load_data(&self) -> anyhow::Result<Vec<Self::Item>> {
-        Ok(load_excel_data::<Self::Item>(self.file.as_path()).unwrap())
+        let mut data = load_excel_data::<Self::Item>(self.file.as_path()).unwrap();
+        // filter with target account ids
+        data = match get_target_ids() {
+            Some(account_ids) => data
+                .into_iter()
+                .filter_map(|v| {
+                    if !account_ids.contains(&v.account_id) {
+                        return None;
+                    }
+                    Some(v)
+                })
+                .collect::<Vec<Self::Item>>(),
+            None => data,
+        };
+        Ok(data)
     }
 
     fn generate_result_in_string(&self, data: &Vec<Self::Item>) -> Result<String> {
@@ -83,5 +97,14 @@ impl Processor for RunArgs {
         io::stdout().write_all(&output.stdout).unwrap();
         io::stderr().write_all(&output.stderr).unwrap();
         Ok(())
+    }
+}
+
+pub fn get_target_ids() -> Option<Vec<u32>> {
+    let contents = fs::read_to_string("account_id.txt").unwrap_or("".to_string());
+    let account_id: Vec<u32> = contents.lines().filter_map(|v| v.parse().ok()).collect();
+    match account_id.len() != 0 {
+        true => Some(account_id),
+        false => None,
     }
 }

@@ -25,15 +25,15 @@ Usage: profile_stats run [OPTIONS] --file <FILE>
 
 Options:
   -f, --file <FILE>
-
+          
   -s, --s-type <S_TYPE>
           [default: default] [possible values: default, weekly, monthly, quarterly]
   -k, --key <KEY>
-          [default: "1 September 2022 - 28 February 2023"]
+          [default: "1 September 2022 - 31 March 2023"]
   -m, --migration-file-name <MIGRATION_FILE_NAME>
           [default: SeedProfileStatsBatch]
   -r, --raise-pr
-
+          
   -h, --help
           Print help
 

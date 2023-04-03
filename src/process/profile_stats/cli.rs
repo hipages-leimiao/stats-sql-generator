@@ -62,8 +62,15 @@ pub struct RunArgs {
     #[clap(short, long, value_parser, default_value=get_default_key())]
     pub key: String,
 
-    #[clap(short, long, value_parser, default_value = "SeedProfileStatsBatch")]
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = get_default_file_name()
+    )]
     pub migration_file_name: String,
+    #[clap(short, long, value_parser, default_value = "false")]
+    pub do_filter: bool,
 
     #[clap(short, long, value_parser, default_value = "false")]
     pub raise_pr: bool,
@@ -71,6 +78,10 @@ pub struct RunArgs {
 
 fn get_default_key() -> &'static OsStr {
     Box::leak(Box::new(OsString::from(get_default_date_range()))).as_os_str()
+}
+
+fn get_default_file_name() -> &'static OsStr {
+    Box::leak(Box::new(OsString::from(get_default_migration_name()))).as_os_str()
 }
 
 pub fn get_default_date_range() -> String {
@@ -85,6 +96,11 @@ pub fn get_default_date_range() -> String {
         "1 September 2022 - {}",
         last_day.format("%-d %B %Y").to_string()
     )
+}
+
+pub fn get_default_migration_name() -> String {
+    let date = Local::now().format("%m%d").to_string();
+    format!("SeedProfileStatsBatch{}", date)
 }
 
 pub fn get_stat_key(s_type: &StatType) -> String {

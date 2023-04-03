@@ -2,7 +2,10 @@ use crate::{file::get_file_full_path, CliArgs};
 use anyhow::{anyhow, Ok, Result};
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 
-use super::cli::{get_stat_key, RunArgs, StatType};
+use super::{
+    cli::{get_default_migration_name, get_stat_key, RunArgs, StatType},
+    processor::get_target_ids,
+};
 
 impl CliArgs for RunArgs {
     fn parse_args(&mut self) -> Result<Self> {
@@ -37,7 +40,17 @@ impl CliArgs for RunArgs {
 
         let migration_file_name: String = Input::with_theme(&ColorfulTheme::default())
             .with_prompt("Filename of this migration")
-            .default("SeedProfileStatsBatch".into())
+            .default(get_default_migration_name())
+            .interact_text()?;
+        let target_ids_count = match get_target_ids() {
+            Some(v) => v.len(),
+            None => 0,
+        };
+        let do_filter = Input::with_theme(&ColorfulTheme::default())
+            .with_prompt(format!(
+                "Auto filter base on account_id.txt? (count: {target_ids_count})"
+            ))
+            .default(false)
             .interact_text()?;
         let raise_pr = Input::with_theme(&ColorfulTheme::default())
             .with_prompt("Auto raise phinx migration PR?")
@@ -48,6 +61,7 @@ impl CliArgs for RunArgs {
             key,
             migration_file_name,
             raise_pr,
+            do_filter,
             s_type,
         })
     }
