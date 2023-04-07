@@ -9,8 +9,11 @@ repos:
       - id: check-symlinks
       - id: check-yaml
       - id: end-of-file-fixer
+        exclude: '\.(md|csv|txt|xlsx)'
       - id: mixed-line-ending
+        exclude: '\.(md|csv|txt|xlsx)'
       - id: trailing-whitespace
+        exclude: '\.(md|csv|txt|xlsx)'
   - repo: https://github.com/psf/black
     rev: 19.3b0
     hooks:

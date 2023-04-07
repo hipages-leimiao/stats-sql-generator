@@ -25,7 +25,7 @@ Usage: profile_stats run [OPTIONS] --file <FILE>
 
 Options:
   -f, --file <FILE>
-[..]
+          
   -s, --s-type <S_TYPE>
           [default: default] [possible values: default, weekly, monthly, quarterly]
   -k, --key <KEY>
@@ -33,9 +33,9 @@ Options:
   -m, --migration-file-name <MIGRATION_FILE_NAME>
           [default: SeedProfileStatsBatch[..]]
   -d, --do-filter
-[..]
+          
   -r, --raise-pr
-[..]
+          
   -h, --help
           Print help
 
