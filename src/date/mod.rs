@@ -12,7 +12,11 @@ impl DateRangeType {
         if start.year() == end.year() {
             return format!("{} - {}", start.format("%-d %b"), end.format("%-d %b %Y"));
         } else {
-            return format!("{} - {}", start.format("%-d %b %Y"), end.format("%-d %b %Y"));
+            return format!(
+                "{} - {}",
+                start.format("%-d %b %Y"),
+                end.format("%-d %b %Y")
+            );
         }
     }
 }

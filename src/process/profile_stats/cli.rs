@@ -1,6 +1,7 @@
 use crate::{date::DateRangeType, file::get_file_full_path};
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand, ValueEnum};
+use lazy_static::lazy_static;
 use std::{
     ffi::{OsStr, OsString},
     fmt,
@@ -75,13 +76,15 @@ pub struct RunArgs {
     #[clap(short, long, value_parser, default_value = "false")]
     pub raise_pr: bool,
 }
-
-fn get_default_key() -> &'static OsStr {
-    Box::leak(Box::new(OsString::from(get_default_date_range()))).as_os_str()
+lazy_static! {
+    static ref DEFAULT_FILE_NAME: OsString = OsString::from(get_default_migration_name());
 }
 
 fn get_default_file_name() -> &'static OsStr {
-    Box::leak(Box::new(OsString::from(get_default_migration_name()))).as_os_str()
+    DEFAULT_FILE_NAME.as_os_str()
+}
+fn get_default_key() -> &'static OsStr {
+    Box::leak(Box::new(OsString::from(get_default_date_range()))).as_os_str()
 }
 
 pub fn get_default_date_range() -> String {

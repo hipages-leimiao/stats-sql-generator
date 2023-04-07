@@ -9,7 +9,7 @@ use super::{
 
 impl CliArgs for RunArgs {
     fn parse_args(&mut self) -> Result<Self> {
-        if !self.key.is_empty() {
+        if self.key.is_empty() {
             self.key = get_stat_key(&self.s_type);
         }
         Ok(self.clone())
@@ -29,12 +29,11 @@ impl CliArgs for RunArgs {
             StatType::Monthly,
             StatType::Weekly,
         ];
-        let picked_range: usize = Select::with_theme(&ColorfulTheme::default())
+        let picked_range = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Select a stats type")
             .items(range_items)
             .default(0)
-            .interact()?
-            .into();
+            .interact()?;
         let s_type = range_items[picked_range];
         let key = get_stat_key(&s_type);
 
@@ -42,10 +41,8 @@ impl CliArgs for RunArgs {
             .with_prompt("Filename of this migration")
             .default(get_default_migration_name())
             .interact_text()?;
-        let target_ids_count = match get_target_ids() {
-            Some(v) => v.len(),
-            None => 0,
-        };
+        let target_ids_count = get_target_ids().map_or(0, |v| v.len());
+
         let do_filter = Input::with_theme(&ColorfulTheme::default())
             .with_prompt(format!(
                 "Auto filter base on account_id.txt? (count: {target_ids_count})"

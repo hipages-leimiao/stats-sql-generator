@@ -29,9 +29,11 @@ Options:
   -s, --s-type <S_TYPE>
           [default: default] [possible values: default, weekly, monthly, quarterly]
   -k, --key <KEY>
-          [default: "1 September 2022 - 31 March 2023"]
+          [default: "[..]"]
   -m, --migration-file-name <MIGRATION_FILE_NAME>
-          [default: SeedProfileStatsBatch]
+          [default: SeedProfileStatsBatch[..]]
+  -d, --do-filter
+          
   -r, --raise-pr
           
   -h, --help
@@ -43,7 +45,7 @@ Options:
 
 ```trycmd
 $ profile_stats run -f fixtures/test.csv -s monthly -m SeedProfileStatsBatch4
-migration sql generates to file: migration_output.php
+migration sql has been generated to file: migration_output.php
 
 ```
 
@@ -57,6 +59,6 @@ $ profile_stats parse
 ✔ Select a stats type · Monthly: 1 Feb - 28 Feb 2023
 ✔ Filename of this migration · SeedProfileStatsBatch
 ✔ Auto raise phinx migration PR? · false
-migration sql generates to file: migration_output.php
+migration sql has been generated to file: migration_output.php
 
 ```

@@ -37,10 +37,10 @@ pub fn prev_quarter() -> (NaiveDate, NaiveDate) {
     let month = today.month();
 
     let start_month = match month {
-        1 | 2 | 3 => 10,
-        4 | 5 | 6 => 1,
-        7 | 8 | 9 => 4,
-        10 | 11 | 12 => 7,
+        1..=3 => 10,
+        4..=6 => 1,
+        7..=9 => 4,
+        10..=12 => 7,
         _ => unreachable!(),
     };
 

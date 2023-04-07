@@ -28,8 +28,8 @@ impl Processor for RunArgs {
     fn load_data(&self) -> anyhow::Result<Vec<Self::Item>> {
         let mut data = load_excel_data::<Self::Item>(self.file.as_path()).unwrap();
         // filter with target account ids
-        data = match get_target_ids() {
-            Some(account_ids) => data
+        if let Some(account_ids) = get_target_ids() {
+            data = data
                 .into_iter()
                 .filter_map(|v| {
                     if !account_ids.contains(&v.account_id) {
@@ -37,8 +37,7 @@ impl Processor for RunArgs {
                     }
                     Some(v)
                 })
-                .collect::<Vec<Self::Item>>(),
-            None => data,
+                .collect::<Vec<Self::Item>>();
         };
         Ok(data)
     }
@@ -54,7 +53,7 @@ impl Processor for RunArgs {
                     "{}{};",
                     sql_prefix,
                     chunk
-                        .iter()
+                        .into_iter()
                         .map(|v| {
                             format!(
                                 "({},'{}','{}',{},{},{})",
@@ -66,22 +65,22 @@ impl Processor for RunArgs {
                                 v.view_gallery
                             )
                         })
-                        .collect::<Vec<String>>()
+                        .collect::<Vec<_>>()
                         .join(",")
                 )
             })
-            .collect::<Vec<String>>()
+            .collect::<Vec<_>>()
             .join("\n");
         Ok(sql)
     }
 
     fn write_data(&self, result_str: &str) -> anyhow::Result<()> {
-        let tpl = include_str!("../../../fixtures/migration_tpl.txt")
+        let tpl = fs::read_to_string("fixtures/migration_tpl.txt")?
             .replace("{sql}", &result_str)
             .replace("{file_name}", &self.migration_file_name);
         let output_file = "migration_output.php";
-        println!("migration sql generates to file: {}", output_file);
         fs::write(output_file, tpl).expect("Unable to write migration file");
+        println!("migration sql has been generated to file: {}", output_file);
         Ok(())
     }
 
@@ -89,13 +88,14 @@ impl Processor for RunArgs {
         if !self.raise_pr {
             return Ok(());
         }
+        let script = "src/bin/profile_stats_post.sh";
         let output = Command::new("sh")
-            .args(&["src/bin/profile_stats_post.sh", &self.migration_file_name])
-            .output()
-            .expect("failed to add migration file to phinx");
+            .arg(script)
+            .arg(&self.migration_file_name)
+            .output()?;
 
-        io::stdout().write_all(&output.stdout).unwrap();
-        io::stderr().write_all(&output.stderr).unwrap();
+        io::stdout().write_all(&output.stdout)?;
+        io::stderr().write_all(&output.stderr)?;
         Ok(())
     }
 }
