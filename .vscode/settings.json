@@ -1,0 +1,10 @@
+{
+  "editor.tabCompletion": "on",
+  "diffEditor.codeLens": true,
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.rulers": []
+  },
+  "rust-analyzer.linkedProjects": ["/Cargo.toml"]
+}

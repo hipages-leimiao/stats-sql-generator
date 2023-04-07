@@ -1,8 +1,9 @@
-use crate::{date::DateRangeType, file::get_file_full_path};
+use crate::{date::PastDateRangeType, file::get_file_full_path};
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand, ValueEnum};
 use lazy_static::lazy_static;
 use std::{
+    default::Default,
     ffi::{OsStr, OsString},
     fmt,
     path::PathBuf,
@@ -15,19 +16,13 @@ pub enum Action {
     Run(RunArgs),
     Parse,
 }
-
-#[derive(ValueEnum, Clone, Copy, Debug)]
+#[derive(ValueEnum, Clone, Copy, Debug, Default)]
 pub enum StatType {
+    #[default]
     Default,
     Weekly,
     Monthly,
     Quarterly,
-}
-
-impl Default for StatType {
-    fn default() -> Self {
-        StatType::Default
-    }
 }
 
 impl StatType {
@@ -95,10 +90,7 @@ pub fn get_default_date_range() -> String {
         .pred_opt()
         .unwrap();
 
-    format!(
-        "1 September 2022 - {}",
-        last_day.format("%-d %B %Y").to_string()
-    )
+    format!("1 September 2022 - {}", last_day.format("%-d %B %Y"))
 }
 
 pub fn get_default_migration_name() -> String {
@@ -109,8 +101,8 @@ pub fn get_default_migration_name() -> String {
 pub fn get_stat_key(s_type: &StatType) -> String {
     match s_type {
         StatType::Default => get_default_date_range(),
-        StatType::Weekly => DateRangeType::PrevWeek.to_string(),
-        StatType::Monthly => DateRangeType::PrevMonth.to_string(),
-        StatType::Quarterly => DateRangeType::PrevThreeMonth.to_string(),
+        StatType::Weekly => PastDateRangeType::Week.to_string(),
+        StatType::Monthly => PastDateRangeType::Month.to_string(),
+        StatType::Quarterly => PastDateRangeType::ThreeMonth.to_string(),
     }
 }

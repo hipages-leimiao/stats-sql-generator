@@ -19,7 +19,7 @@ where
 
     fn load_data(&self) -> Result<Vec<Self::Item>>;
 
-    fn generate_result_in_string(&self, data: &Vec<Self::Item>) -> Result<String>;
+    fn generate_result_in_string(&self, data: &[Self::Item]) -> Result<String>;
 
     fn write_data(&self, result_str: &str) -> Result<()>;
     fn run_post_script(&self) -> Result<()> {

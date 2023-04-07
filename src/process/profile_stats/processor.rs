@@ -42,7 +42,7 @@ impl Processor for RunArgs {
         Ok(data)
     }
 
-    fn generate_result_in_string(&self, data: &Vec<Self::Item>) -> Result<String> {
+    fn generate_result_in_string(&self, data: &[Self::Item]) -> Result<String> {
         let s_type = self.s_type.as_str();
         let chunk_size = 10000;
         let sql_prefix: &str = "replace into directory_tradie_statistics (account_id,stats_key,stats_type,profile_views,contact_number_impressions,gallery_impressions) values ";
@@ -53,7 +53,7 @@ impl Processor for RunArgs {
                     "{}{};",
                     sql_prefix,
                     chunk
-                        .into_iter()
+                        .iter()
                         .map(|v| {
                             format!(
                                 "({},'{}','{}',{},{},{})",
@@ -76,7 +76,7 @@ impl Processor for RunArgs {
 
     fn write_data(&self, result_str: &str) -> anyhow::Result<()> {
         let tpl = fs::read_to_string("fixtures/migration_tpl.txt")?
-            .replace("{sql}", &result_str)
+            .replace("{sql}", result_str)
             .replace("{file_name}", &self.migration_file_name);
         let output_file = "migration_output.php";
         fs::write(output_file, tpl).expect("Unable to write migration file");
@@ -103,7 +103,7 @@ impl Processor for RunArgs {
 pub fn get_target_ids() -> Option<Vec<u32>> {
     let contents = fs::read_to_string("account_id.txt").unwrap_or("".to_string());
     let account_id: Vec<u32> = contents.lines().filter_map(|v| v.parse().ok()).collect();
-    match account_id.len() != 0 {
+    match !account_id.is_empty() {
         true => Some(account_id),
         false => None,
     }
