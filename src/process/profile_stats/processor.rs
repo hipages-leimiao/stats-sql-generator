@@ -28,17 +28,9 @@ impl Processor for RunArgs {
     fn load_data(&self) -> anyhow::Result<Vec<Self::Item>> {
         let mut data = load_excel_data::<Self::Item>(self.file.as_path()).unwrap();
         // filter with target account ids
-        if let Some(account_ids) = get_target_ids() {
-            data = data
-                .into_iter()
-                .filter_map(|v| {
-                    if !account_ids.contains(&v.account_id) {
-                        return None;
-                    }
-                    Some(v)
-                })
-                .collect::<Vec<Self::Item>>();
-        };
+        if let (true, Some(ids)) = (self.do_filter, get_target_ids()) {
+            data.retain(|v| ids.contains(&v.account_id));
+        }
         Ok(data)
     }
 

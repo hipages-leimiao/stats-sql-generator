@@ -5,6 +5,5 @@
     "editor.formatOnSave": false,
     "editor.formatOnType": false,
     "editor.rulers": []
-  },
-  "rust-analyzer.linkedProjects": ["/Cargo.toml"]
+  }
 }
