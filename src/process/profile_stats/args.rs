@@ -23,12 +23,7 @@ impl CliArgs for RunArgs {
         if !path.exists() {
             return Err(anyhow!("Path invalid"));
         }
-        let range_items = &vec![
-            StatType::Default,
-            StatType::Quarterly,
-            StatType::Monthly,
-            StatType::Weekly,
-        ];
+        let range_items = &vec![StatType::Quarterly, StatType::Monthly, StatType::Weekly];
         let picked_range = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Select a stats type")
             .items(range_items)

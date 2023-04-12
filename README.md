@@ -27,7 +27,7 @@ Options:
   -f, --file <FILE>
           
   -s, --s-type <S_TYPE>
-          [default: default] [possible values: default, weekly, monthly, quarterly]
+          [default: monthly] [possible values: weekly, monthly, quarterly]
   -k, --key <KEY>
           [default: "[..] - [..]"]
   -m, --migration-file-name <MIGRATION_FILE_NAME>
